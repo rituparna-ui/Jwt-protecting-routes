@@ -1,27 +1,27 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const cookpars = require('cookie-parser');
 const app = express();
-
+app.use(cookpars());
 app.get("/api",(req,res)=>{
 	res.json({
 		"msg":"welcome"
 	});
 });
 
-app.post("/api/login",(req,res)=>{
+app.get("/api/login",(req,res)=>{
 	const user = {
 		id : 1,
 		name : "Ritu",
 		email : "rw@rw.com"
 	}
 	jwt.sign({user},"rituparna",(err,tk)=>{
-		res.json({
-			tk
-		})
+		res.cookie("token",tk);
+		res.end();
 	});
 });
 
-app.post("/api/posts",verifyTk,(req,res)=>{
+app.get("/api/posts",verifyTk,(req,res)=>{
 	jwt.verify(req.token,"rituparna",(err,authData)=>{
 		if(err){
 			res.sendStatus(403);
@@ -35,11 +35,13 @@ app.post("/api/posts",verifyTk,(req,res)=>{
 });
 
 function verifyTk(req,res,next){
-	const bearerHeader = req.headers["authorization"];
+	const bearerHeader = req.cookies;
+//	console.log(req.cookies);
+//	const bearerHeader = req.headers["authorization"];
 	if(typeof(bearerHeader) !== 'undefined'){
-		const bearer = bearerHeader.split(" ");
-		const bearerToken = bearer[1];
-		req.token = bearerToken;
+	//	const bearer = bearerHeader.split(" ");
+	//	const bearerToken = bearer[1];
+		req.token = bearerHeader.token;
 		next();
 	}else{
 		res.sendStatus(403);
